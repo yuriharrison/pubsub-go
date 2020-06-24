@@ -86,8 +86,9 @@ func (c Conference) Subscribe(id uuid.UUID, topic string, out chan Notification)
 		tree = &bst.BinarySearchTree{}
 		c.Room[topic] = tree
 	}
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
 	tree.Add(NewSubscriber(id, out))
-	log.Println("new subscriber added")
 }
 
 // Unsubscribe from a conference topic
@@ -104,7 +105,7 @@ func (c Conference) Publish(topic string, data interface{}) {
 	log.Println("Message:", data)
 	if tree, ok := c.Room[topic]; ok {
 		if tree.IsEmpty() {
-			panic("tree is empty")
+			return
 		}
 		iter := tree.Traverse()
 		for iter.Next() {
